@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PULSO — Videojuegos · Buceo · Rope Jumping</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0b0f14;
+    --paper:#f3efe6;
+    --muted:#6b7280;
+    --game:#7c3aed;   /* morado videojuegos */
+    --dive:#0891b2;   /* azul buceo */
+    --rope:#ea580c;   /* naranja rope jumping */
+    --radius:18px;
+    --maxw:1180px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:'Inter',system-ui,sans-serif;background:var(--paper);color:var(--ink);line-height:1.55}
+  a{color:inherit;text-decoration:none}
+  img,svg{display:block;max-width:100%}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+  .mono{font-family:'JetBrains Mono',monospace;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase}
+  h1,h2,h3{font-family:'Archivo Black',sans-serif;line-height:1;letter-spacing:-.01em}
+
+  /* ---------- NAV ---------- */
+  nav{position:sticky;top:0;z-index:50;background:rgba(243,239,230,.88);backdrop-filter:blur(10px);border-bottom:1px solid rgba(0,0,0,.08)}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:68px}
+  .logo{font-family:'Archivo Black';font-size:1.5rem;display:flex;align-items:center;gap:8px}
+  .logo i{display:inline-flex;gap:3px}
+  .logo i b{width:8px;height:22px;border-radius:3px}
+  .logo i b:nth-child(1){background:var(--game)}
+  .logo i b:nth-child(2){background:var(--dive);height:16px;align-self:end}
+  .logo i b:nth-child(3){background:var(--rope);height:28px;align-self:end}
+  .menu{display:flex;gap:28px;font-weight:500}
+  .menu a{position:relative}
+  .menu a::after{content:"";position:absolute;left:0;bottom:-4px;width:0;height:2px;background:var(--ink);transition:width .25s}
+  .menu a:hover::after{width:100%}
+  .btn{display:inline-block;padding:12px 22px;border-radius:999px;font-weight:700;border:2px solid var(--ink);transition:transform .15s, box-shadow .15s}
+  .btn:hover{transform:translate(-2px,-2px);box-shadow:4px 4px 0 var(--ink)}
+  .btn.dark{background:var(--ink);color:var(--paper)}
+  .burger{display:none;background:none;border:0;font-size:1.6rem;cursor:pointer}
+
+  /* ---------- HERO ---------- */
+  .hero{padding:72px 0 40px}
+  .hero h1{font-size:clamp(3rem,9vw,7.5rem);text-transform:uppercase}
+  .hero h1 span{display:block}
+  .hero h1 .g{color:var(--game)}
+  .hero h1 .d{color:var(--dive)}
+  .hero h1 .r{color:var(--rope)}
+  .hero-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:48px;align-items:end;margin-top:32px}
+  .hero p.lead{font-size:1.2rem;max-width:520px;color:#333}
+  .hero .ctas{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);border-top:2px solid var(--ink)}
+  .stats div{padding:18px 0}
+  .stats strong{font-family:'Archivo Black';font-size:2rem;display:block}
+
+  /* ---------- TICKER ---------- */
+  .ticker{background:var(--ink);color:var(--paper);overflow:hidden;white-space:nowrap;padding:14px 0;margin-top:48px}
+  .ticker div{display:inline-block;animation:scroll 28s linear infinite}
+  .ticker span{margin:0 28px;font-family:'Archivo Black';font-size:1.1rem;text-transform:uppercase}
+  .ticker em{font-style:normal;color:var(--rope)}
+  @keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+  /* ---------- SECCIONES DE DISCIPLINA ---------- */
+  .zone{padding:96px 0;position:relative;overflow:hidden}
+  .zone .head{display:flex;justify-content:space-between;align-items:end;gap:24px;margin-bottom:40px;flex-wrap:wrap}
+  .zone h2{font-size:clamp(2.4rem,6vw,4.5rem);text-transform:uppercase}
+  .zone .tag{display:inline-block;padding:6px 12px;border-radius:999px;margin-bottom:14px}
+  .zone .intro{max-width:440px}
+
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .card{border-radius:var(--radius);overflow:hidden;background:#fff;border:2px solid var(--ink);transition:transform .2s, box-shadow .2s}
+  .card:hover{transform:translate(-4px,-4px);box-shadow:8px 8px 0 var(--ink)}
+  .card .art{aspect-ratio:4/3;position:relative}
+  .card .body{padding:20px}
+  .card h3{font-size:1.3rem;margin:8px 0}
+  .card .meta{display:flex;justify-content:space-between;margin-top:14px;color:var(--muted)}
+
+  /* Videojuegos */
+  #videojuegos{background:#120b22;color:#efeaff}
+  #videojuegos .tag{background:var(--game);color:#fff}
+  #videojuegos .card{background:#1c1233;border-color:#3b2a66;color:#efeaff}
+  #videojuegos .card:hover{box-shadow:8px 8px 0 var(--game)}
+  #videojuegos .meta{color:#a99bd1}
+  .pixel-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(124,58,237,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(124,58,237,.12) 1px,transparent 1px);background-size:32px 32px;pointer-events:none}
+
+  /* Buceo */
+  #buceo{background:linear-gradient(180deg,#e0f7fb 0%,#0e7490 60%,#083344 100%);color:var(--ink)}
+  #buceo .tag{background:var(--dive);color:#fff}
+  #buceo .cards .card{border-color:#083344}
+  .depth{position:absolute;right:24px;top:96px;bottom:96px;width:2px;background:rgba(8,51,68,.35)}
+  .depth span{position:absolute;right:10px;font-family:'JetBrains Mono';font-size:.72rem;color:#083344;white-space:nowrap}
+  .bubbles span{position:absolute;bottom:-20px;border-radius:50%;border:2px solid rgba(255,255,255,.6);animation:rise linear infinite}
+  @keyframes rise{to{transform:translateY(-110vh) translateX(20px);opacity:0}}
+
+  /* Rope Jumping */
+  #rope{background:var(--rope);color:var(--ink)}
+  #rope .tag{background:var(--ink);color:var(--paper)}
+  .rope-feature{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:center;margin-bottom:40px}
+  .rope-feature .big{background:var(--paper);border:2px solid var(--ink);border-radius:var(--radius);padding:32px}
+  .checklist{list-style:none;margin-top:16px}
+  .checklist li{padding:10px 0;border-bottom:1px dashed rgba(0,0,0,.25);display:flex;gap:10px}
+  .checklist li::before{content:"✓";font-weight:700}
+
+  /* ---------- EVENTOS ---------- */
+  #eventos{padding:96px 0}
+  .events{border-top:2px solid var(--ink)}
+  .event{display:grid;grid-template-columns:120px 1fr 160px 140px;gap:20px;align-items:center;padding:22px 0;border-bottom:1px solid rgba(0,0,0,.15);transition:background .2s,padding .2s}
+  .event:hover{background:#fff;padding-left:14px;padding-right:14px}
+  .event .date strong{font-family:'Archivo Black';font-size:2rem;display:block;line-height:1}
+  .pill{display:inline-block;padding:4px 10px;border-radius:999px;color:#fff;font-size:.75rem;font-weight:700}
+  .pill.g{background:var(--game)} .pill.d{background:var(--dive)} .pill.r{background:var(--rope)}
+
+  /* ---------- NEWSLETTER ---------- */
+  .newsletter{background:var(--ink);color:var(--paper);border-radius:28px;padding:56px;display:grid;grid-template-columns:1.2fr 1fr;gap:32px;align-items:center;margin-bottom:96px}
+  .newsletter h2{font-size:clamp(2rem,4vw,3.2rem)}
+  .newsletter form{display:flex;gap:10px;flex-wrap:wrap}
+  .newsletter input{flex:1;min-width:200px;padding:14px 18px;border-radius:999px;border:2px solid var(--paper);background:transparent;color:var(--paper);font:inherit}
+  .newsletter .btn{border-color:var(--paper);background:var(--paper);color:var(--ink)}
+  .newsletter .btn:hover{box-shadow:4px 4px 0 var(--rope)}
+  .chips{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+  .chips label{cursor:pointer;display:flex;gap:6px;align-items:center;font-size:.9rem;opacity:.85}
+
+  /* ---------- FOOTER ---------- */
+  footer{border-top:2px solid var(--ink);padding:48px 0 32px}
+  .foot{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:32px}
+  .foot h4{font-family:'JetBrains Mono';font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px;color:var(--muted)}
+  .foot a{display:block;padding:4px 0}
+  .foot a:hover{text-decoration:underline}
+  .copy{margin-top:40px;display:flex;justify-content:space-between;color:var(--muted);font-size:.85rem;flex-wrap:wrap;gap:10px}
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width:900px){
+    .hero-grid,.rope-feature,.newsletter{grid-template-columns:1fr}
+    .cards{grid-template-columns:1fr 1fr}
+    .event{grid-template-columns:90px 1fr;}
+    .event .cat,.event .act{grid-column:2}
+    .foot{grid-template-columns:1fr 1fr}
+    .depth{display:none}
+  }
+  @media (max-width:640px){
+    .menu{display:none;position:absolute;top:68px;left:0;right:0;background:var(--paper);flex-direction:column;padding:20px 24px;border-bottom:2px solid var(--ink)}
+    .menu.open{display:flex}
+    .burger{display:block}
+    nav .btn{display:none}
+    .cards{grid-template-columns:1fr}
+    .newsletter{padding:32px}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ================= NAV ================= -->
+<nav>
+  <div class="wrap">
+    <a href="#" class="logo"><i><b></b><b></b><b></b></i>PULSO</a>
+    <div class="menu" id="menu">
+      <a href="#videojuegos">Videojuegos</a>
+      <a href="#buceo">Buceo</a>
+      <a href="#rope">Rope Jumping</a>
+      <a href="#eventos">Eventos</a>
+    </div>
+    <a href="#unete" class="btn dark">Únete</a>
+    <button class="burger" aria-label="Abrir menú" onclick="document.getElementById('menu').classList.toggle('open')">☰</button>
+  </div>
+</nav>
+
+<!-- ================= HERO ================= -->
+<header class="hero">
+  <div class="wrap">
+    <p class="mono">Comunidad de adrenalina · Est. 2026</p>
+    <h1>
+      <span class="g">Juega.</span>
+      <span class="d">Sumérgete.</span>
+      <span class="r">Salta.</span>
+    </h1>
+    <div class="hero-grid">
+      <div>
+        <p class="lead">Un solo lugar para quienes viven al límite: torneos de videojuegos, inmersiones en arrecifes y saltos con cuerda desde puentes y acantilados.</p>
+        <div class="ctas">
+          <a href="#eventos" class="btn dark">Ver próximos eventos</a>
+          <a href="#videojuegos" class="btn">Explorar</a>
+        </div>
+      </div>
+      <div class="stats">
+        <div><strong>12K</strong><span class="mono">Miembros</span></div>
+        <div><strong>340</strong><span class="mono">Eventos</span></div>
+        <div><strong>28</strong><span class="mono">Sedes</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="ticker" aria-hidden="true">
+    <div>
+      <span>Torneo FPS <em>★</em></span><span>Cenotes de Yucatán <em>★</em></span><span>Salto Puente Metlac <em>★</em></span><span>Speedrun Night <em>★</em></span><span>Certificación PADI <em>★</em></span><span>Pendulum Jump <em>★</em></span>
+      <span>Torneo FPS <em>★</em></span><span>Cenotes de Yucatán <em>★</em></span><span>Salto Puente Metlac <em>★</em></span><span>Speedrun Night <em>★</em></span><span>Certificación PADI <em>★</em></span><span>Pendulum Jump <em>★</em></span>
+    </div>
+  </div>
+</header>
+
+<!-- ================= VIDEOJUEGOS ================= -->
+<section class="zone" id="videojuegos">
+  <div class="pixel-bg"></div>
+  <div class="wrap" style="position:relative">
+    <div class="head">
+      <div>
+        <span class="tag mono">01 — Videojuegos</span>
+        <h2>Press Start</h2>
+      </div>
+      <p class="intro">Torneos semanales, noches de speedrun, reseñas y una comunidad que juega en serio (y a veces no tanto).</p>
+    </div>
+    <div class="cards">
+      <article class="card">
+        <div class="art" style="background:linear-gradient(135deg,#7c3aed,#db2777)">
+          <svg viewBox="0 0 200 150" width="100%" height="100%"><rect x="60" y="55" width="80" height="40" rx="20" fill="#120b22"/><rect x="78" y="70" width="14" height="4" fill="#efeaff"/><rect x="83" y="65" width="4" height="14" fill="#efeaff"/><circle cx="118" cy="70" r="4" fill="#f472b6"/><circle cx="126" cy="78" r="4" fill="#a78bfa"/></svg>
+        </div>
+        <div class="body">
+          <span class="mono">Torneo</span>
+          <h3>Liga Arena FPS</h3>
+          <p>Equipos de 5, eliminación doble y premios en efectivo.</p>
+          <div class="meta mono"><span>Sáb 21:00</span><span>64 cupos</span></div>
+        </div>
+      </article>
+      <article class="card">
+        <div class="art" style="background:linear-gradient(135deg,#0ea5e9,#7c3aed)">
+          <svg viewBox="0 0 200 150" width="100%" height="100%"><g fill="#efeaff"><rect x="70" y="40" width="10" height="10"/><rect x="120" y="40" width="10" height="10"/><rect x="60" y="50" width="80" height="10"/><rect x="50" y="60" width="100" height="20"/><rect x="60" y="80" width="10" height="10"/><rect x="130" y="80" width="10" height="10"/><rect x="80" y="90" width="15" height="10"/><rect x="105" y="90" width="15" height="10"/></g><rect x="75" y="62" width="10" height="10" fill="#120b22"/><rect x="115" y="62" width="10" height="10" fill="#120b22"/></svg>
+        </div>
+        <div class="body">
+          <span class="mono">Retro</span>
+          <h3>Speedrun Night</h3>
+          <p>Clásicos de 8 y 16 bits contra el reloj, con transmisión en vivo.</p>
+          <div class="meta mono"><span>Vie 20:00</span><span>Abierto</span></div>
+        </div>
+      </article>
+      <article class="card">
+        <div class="art" style="background:linear-gradient(135deg,#f59e0b,#7c3aed)">
+          <svg viewBox="0 0 200 150" width="100%" height="100%"><polygon points="100,30 115,65 152,65 122,87 133,122 100,100 67,122 78,87 48,65 85,65" fill="#120b22"/></svg>
+        </div>
+        <div class="body">
+          <span class="mono">Reseñas</span>
+          <h3>Lo mejor del mes</h3>
+          <p>Nuestro equipo analiza los lanzamientos que valen tu tiempo.</p>
+          <div class="meta mono"><span>Blog</span><span>8 min</span></div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ================= BUCEO ================= -->
+<section class="zone" id="buceo">
+  <div class="bubbles" aria-hidden="true">
+    <span style="left:8%;width:14px;height:14px;animation-duration:9s"></span>
+    <span style="left:22%;width:8px;height:8px;animation-duration:7s;animation-delay:2s"></span>
+    <span style="left:45%;width:18px;height:18px;animation-duration:11s;animation-delay:1s"></span>
+    <span style="left:70%;width:10px;height:10px;animation-duration:8s;animation-delay:3s"></span>
+    <span style="left:88%;width:12px;height:12px;animation-duration:10s"></span>
+  </div>
+  <div class="depth" aria-hidden="true">
+    <span style="top:0">0 m</span><span style="top:33%">10 m</span><span style="top:66%">20 m</span><span style="bottom:0">30 m</span>
+  </div>
+  <div class="wrap" style="position:relative">
+    <div class="head">
+      <div>
+        <span class="tag mono">02 — Buceo</span>
+        <h2>Bajo la superficie</h2>
+      </div>
+      <p class="intro">Cursos certificados, salidas a arrecifes y cenotes, y bitácoras de inmersión de la comunidad.</p>
+    </div>
+    <div class="cards">
+      <article class="card">
+        <div class="art" style="background:linear-gradient(180deg,#67e8f9,#0e7490)">
+          <svg viewBox="0 0 200 150" width="100%" height="100%"><path d="M50 80 Q90 50 130 80 Q90 110 50 80Z" fill="#083344"/><polygon points="130,80 155,62 155,98" fill="#083344"/><circle cx="68" cy="76" r="4" fill="#e0f7fb"/></svg>
+        </div>
+        <div class="body">
+          <span class="mono">Curso</span>
+          <h3>Open Water</h3>
+          <p>Tu primera certificación: teoría, alberca y 4 inmersiones en mar abierto.</p>
+          <div class="meta mono"><span>3 días</span><span>Nivel 1</span></div>
+        </div>
+      </article>
+      <article class="card">
+        <div class="art" style="background:linear-gradient(180deg,#0e7490,#042f2e)">
+          <svg viewBox="0 0 200 150" width="100%" height="100%"><path d="M0 30 Q100 0 200 30 L200 0 L0 0Z" fill="#a5f3fc"/><path d="M100 30 L70 150 L130 150Z" fill="rgba(165,243,252,.25)"/><circle cx="100" cy="100" r="6" fill="#fbbf24"/></svg>
+        </div>
+        <div class="body">
+          <span class="mono">Salida</span>
+          <h3>Ruta de cenotes</h3>
+          <p>Inmersiones en cavernas con luz natural y guías especializados.</p>
+          <div class="meta mono"><span>Fin de semana</span><span>Avanzado</span></div>
+        </div>
+      </article>
+      <article class="card">
+        <div class="art" style="background:linear-gradient(180deg,#22d3ee,#155e75)">
+          <svg viewBox="0 0 200 150" width="100%" height="100%"><g fill="#f97316"><path d="M60 150 Q55 110 70 90 Q65 120 75 150Z"/><path d="M90 150 Q85 95 100 70 Q98 115 105 150Z"/><path d="M125 150 Q120 115 135 100 Q130 125 138 150Z"/></g><g fill="#fde047"><circle cx="70" cy="88" r="5"/><circle cx="100" cy="68" r="6"/><circle cx="135" cy="98" r="5"/></g></svg>
+        </div>
+        <div class="body">
+          <span class="mono">Bitácora</span>
+          <h3>Arrecife Mesoamericano</h3>
+          <p>Relatos, fotos y consejos de quienes ya bajaron.</p>
+          <div class="meta mono"><span>Comunidad</span><span>+120 logs</span></div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ROPE JUMPING ================= -->
+<section class="zone" id="rope">
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <span class="tag mono">03 — Rope Jumping</span>
+        <h2>Caída libre<br>con péndulo</h2>
+      </div>
+      <p class="intro">Saltos desde puentes y estructuras con sistema de cuerdas dinámicas, equipo certificado e instructores con experiencia.</p>
+    </div>
+
+    <div class="rope-feature">
+      <svg viewBox="0 0 400 300" aria-hidden="true">
+        <rect x="0" y="40" width="400" height="18" fill="#0b0f14"/>
+        <rect x="40" y="58" width="12" height="242" fill="#0b0f14"/>
+        <rect x="348" y="58" width="12" height="242" fill="#0b0f14"/>
+        <path d="M200 58 Q130 160 90 230" stroke="#f3efe6" stroke-width="4" fill="none" stroke-dasharray="8 6"/>
+        <circle cx="90" cy="236" r="12" fill="#f3efe6"/>
+        <path d="M200 58 Q200 170 200 250" stroke="#0b0f14" stroke-width="2" fill="none" opacity=".3"/>
+        <text x="215" y="160" font-family="JetBrains Mono" font-size="12" fill="#0b0f14">40 m</text>
+      </svg>
+      <div class="big">
+        <span class="mono">Tu primer salto</span>
+        <h3 style="font-size:1.8rem;margin-top:8px">Qué incluye</h3>
+        <ul class="checklist">
+          <li>Plática de seguridad y técnica</li>
+          <li>Arnés, casco y cuerdas certificadas</li>
+          <li>Instructor dedicado durante el salto</li>
+          <li>Video en alta definición</li>
+        </ul>
+        <a href="#eventos" class="btn dark" style="margin-top:20px">Reservar salto</a>
+      </div>
+    </div>
+
+    <div class="cards">
+      <article class="card"><div class="body"><span class="mono">Nivel 1</span><h3>Primer salto</h3><p>Ideal para principiantes. Puente de 30–40 m.</p><div class="meta mono"><span>Medio día</span><span>Desde $1,800</span></div></div></article>
+      <article class="card"><div class="body"><span class="mono">Nivel 2</span><h3>Salto doble</h3><p>Salta en pareja y comparte la adrenalina.</p><div class="meta mono"><span>Medio día</span><span>Desde $3,200</span></div></div></article>
+      <article class="card"><div class="body"><span class="mono">Nivel 3</span><h3>Acantilado</h3><p>Para experimentados: alturas mayores y péndulo largo.</p><div class="meta mono"><span>Día completo</span><span>Desde $4,500</span></div></div></article>
+    </div>
+  </div>
+</section>
+
+<!-- ================= EVENTOS ================= -->
+<section id="eventos">
+  <div class="wrap">
+    <div class="head" style="display:flex;justify-content:space-between;align-items:end;margin-bottom:28px;flex-wrap:wrap;gap:16px">
+      <h2 style="font-size:clamp(2.4rem,6vw,4.5rem);text-transform:uppercase">Próximos eventos</h2>
+      <a href="#" class="btn">Ver calendario</a>
+    </div>
+    <div class="events">
+      <div class="event"><div class="date"><strong>18</strong><span class="mono">Nov</span></div><div><h3 style="font-size:1.2rem">Liga Arena FPS — Final</h3><p style="color:var(--muted)">Ciudad de México</p></div><div class="cat"><span class="pill g">Videojuegos</span></div><div class="act"><a href="#" class="btn">Registro</a></div></div>
+      <div class="event"><div class="date"><strong>23</strong><span class="mono">Nov</span></div><div><h3 style="font-size:1.2rem">Ruta de cenotes</h3><p style="color:var(--muted)">Tulum, Q. Roo</p></div><div class="cat"><span class="pill d">Buceo</span></div><div class="act"><a href="#" class="btn">Registro</a></div></div>
+      <div class="event"><div class="date"><strong>30</strong><span class="mono">Nov</span></div><div><h3 style="font-size:1.2rem">Salto en puente</h3><p style="color:var(--muted)">Veracruz</p></div><div class="cat"><span class="pill r">Rope Jumping</span></div><div class="act"><a href="#" class="btn">Registro</a></div></div>
+      <div class="event"><div class="date"><strong>07</strong><span class="mono">Dic</span></div><div><h3 style="font-size:1.2rem">Speedrun Night: Edición navideña</h3><p style="color:var(--muted)">En línea</p></div><div class="cat"><span class="pill g">Videojuegos</span></div><div class="act"><a href="#" class="btn">Registro</a></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= NEWSLETTER ================= -->
+<div class="wrap" id="unete">
+  <div class="newsletter">
+    <div>
+      <span class="mono" style="opacity:.6">Newsletter</span>
+      <h2 style="margin-top:10px">Recibe la dosis semanal de adrenalina.</h2>
+    </div>
+    <form onsubmit="event.preventDefault();this.querySelector('button').textContent='¡Listo! ✓'">
+      <input type="email" placeholder="tu@correo.com" required aria-label="Correo electrónico">
+      <button class="btn" type="submit">Suscribirme</button>
+      <div class="chips">
+        <label><input type="checkbox" checked> Videojuegos</label>
+        <label><input type="checkbox" checked> Buceo</label>
+        <label><input type="checkbox" checked> Rope Jumping</label>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+  <div class="wrap">
+    <div class="foot">
+      <div>
+        <a href="#" class="logo" style="padding:0"><i><b></b><b></b><b></b></i>PULSO</a>
+        <p style="color:var(--muted);margin-top:12px;max-width:280px">Comunidad para gamers, buzos y saltadores. Juega, sumérgete, salta.</p>
+      </div>
+      <div><h4>Disciplinas</h4><a href="#videojuegos">Videojuegos</a><a href="#buceo">Buceo</a><a href="#rope">Rope Jumping</a></div>
+      <div><h4>Comunidad</h4><a href="#eventos">Eventos</a><a href="#">Blog</a><a href="#">Galería</a></div>
+      <div><h4>Contacto</h4><a href="#">Instagram</a><a href="#">Discord</a><a href="#">contacto@pulso.mx</a></div>
+    </div>
+    <div class="copy"><span>© 2026 PULSO. Todos los derechos reservados.</span><span>Aviso de privacidad · Términos</span></div>
+  </div>
+</footer>
+
+</body>
+</html>
